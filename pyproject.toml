@@ -2,20 +2,16 @@
 name = "deployhub"
 version = "0.1.0"
 description = "Backend for uploading and serving installation files categorized by family and platform."
-authors = [
-    { name = "Mr0rang3", email = "mr.0r4ng3@proton.me" }
-]
+authors = [{ name = "Mr0rang3", email = "mr.0r4ng3@proton.me" }]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "alembic>=1.14.1",
     "fastapi[standard]>=0.115.8",
+    "psycopg[binary]>=3.2.5",
     "pydantic-settings>=2.8.0",
     "sqlmodel>=0.0.22",
 ]
 
 [dependency-groups]
-dev = [
-    "httpx>=0.28.1",
-    "pytest>=8.3.4",
-    "ruff>=0.9.7",
-]
+dev = ["httpx>=0.28.1", "pytest>=8.3.4", "ruff>=0.9.7"]
