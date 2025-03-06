@@ -8,7 +8,9 @@ class FamiliesService:
         self._db = db
 
     def get_all(self, skip: int, limit: int) -> Sequence[Family]:
-        statement = select(Family).offset(skip).limit(limit)
+        statement = (
+            select(Family).where(Family.deleted_at == None).offset(skip).limit(limit)  # noqa: E711
+        )
 
         return self._db.exec(statement=statement).all()
 
@@ -22,4 +24,10 @@ class FamiliesService:
         return family
 
     def get_by_id(self, family_id: int) -> Family:
-        return self._db.get(Family, family_id)
+        statement = (
+            select(Family)
+            .where(Family.id == family_id)
+            .where(Family.deleted_at == None)  # noqa: E711
+        )
+
+        return self._db.exec(statement=statement).first()

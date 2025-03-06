@@ -1,18 +1,16 @@
 from sqlmodel import Field
-from app.models import SQLModel
+from app.core.db.base.models import RecordModel, Base
 
 
-class FamilyBase(SQLModel):
-    name: str = Field(index=True, max_length=100)
+class FamilyBase(Base):
+    name: str = Field(index=True, max_length=100, unique=True)
 
 
 class FamilyCreate(FamilyBase):
     pass
 
 
-class Family(FamilyBase, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+class Family(FamilyBase, RecordModel, table=True): ...
 
 
-class FamilyPublic(FamilyBase):
-    id: int
+class FamilyPublic(Family): ...

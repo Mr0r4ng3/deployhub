@@ -39,8 +39,9 @@ def test_read_family_by_id(client: TestClient, db: Session):
     response = client.get(f"{BASE_URL}{family.id}")
 
     assert response.status_code == status.HTTP_200_OK
-    content = response.json()
-    assert content == expected_family.model_dump()
+    content = FamilyPublic.model_validate(response.json())
+
+    assert content == expected_family
 
 
 def test_read_family_by_id_not_found(client: TestClient, db: Session):

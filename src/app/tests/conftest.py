@@ -4,8 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, create_engine
 
+from app.core.db.base.models import SQLModel
 from app.models import *  # noqa
-from app.core.db import get_db
+from app.core.db.database import get_db
 from app.core.config import settings
 from app.main import app
 
