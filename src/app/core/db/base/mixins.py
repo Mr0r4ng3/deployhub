@@ -7,12 +7,17 @@ class IntegerPrimaryKeyMixin:
     id: int | None = Field(default=None, primary_key=True)
 
 
-class TimestampMixin:
+class CreatedAtMixin:
     created_at: datetime | None = Field(default_factory=utc_now)
 
+
+class UpdatedAtMixin:
     updated_at: datetime | None = Field(
         default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now}, nullable=False
     )
+
+
+class TimestampMixin(CreatedAtMixin, UpdatedAtMixin): ...
 
 
 class SoftDeleteMixin:
