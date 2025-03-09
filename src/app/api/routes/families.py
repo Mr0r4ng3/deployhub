@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from app.api.tags import Tags
+from app.core.security.dependencies import CurrentSessionDep
 from app.services.families import FamiliesService
 from app.models.families import FamilyCreate, FamilyPublic
-from app.api.deps import DbDep
+from app.core.db.dependencies import DbDep
 
 
 router = APIRouter(
@@ -12,7 +13,9 @@ router = APIRouter(
 
 
 @router.get("/", response_model=list[FamilyPublic])
-def get_families(db: DbDep, page: int = 1, limit: int = 10):
+def get_families(
+    db: DbDep, current_session: CurrentSessionDep, page: int = 1, limit: int = 10
+):
     service = FamiliesService(db)
 
     skip = (page - 1) * limit
@@ -25,7 +28,7 @@ def get_families(db: DbDep, page: int = 1, limit: int = 10):
 @router.get(
     "/{family_id}",
 )
-def get_family(db: DbDep, family_id: int):
+def get_family(db: DbDep, current_session: CurrentSessionDep, family_id: int):
     service = FamiliesService(db)
 
     family = service.get_by_id(family_id)
@@ -36,7 +39,7 @@ def get_family(db: DbDep, family_id: int):
 
 
 @router.post("/", status_code=201, response_model=FamilyPublic)
-def create_family(db: DbDep, family: FamilyCreate):
+def create_family(db: DbDep, current_session: CurrentSessionDep, family: FamilyCreate):
     service = FamiliesService(db)
 
     created_family = service.create(family)

@@ -13,15 +13,19 @@ from app.main import app
 engine = create_engine(settings.TEST_DATABASE_URI)
 
 
+def get_session() -> Session:
+    return Session(engine)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def db() -> Generator[Session, None, None]:
     SQLModel.metadata.create_all(engine)  # noqa
 
-    with Session(engine) as session:
+    with get_session() as session:
         yield session
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def client(db) -> Generator[TestClient, None, None]:
     def override_get_db():
         yield db

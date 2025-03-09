@@ -16,7 +16,7 @@ def test_create_family(db: Session):
 
 
 def test_get_family(db: Session):
-    family = create_random_family(db)
+    family = create_random_family()
 
     service = FamiliesService(db)
 
@@ -27,7 +27,7 @@ def test_get_family(db: Session):
 
 def test_get_families(db: Session):
     for _ in range(5):
-        create_random_family(db)
+        create_random_family()
 
     service = FamiliesService(db)
 

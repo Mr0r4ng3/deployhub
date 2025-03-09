@@ -1,16 +1,16 @@
-from sqlmodel import Session
-from app.models.families import FamilyCreate, Family
+from app.tests.conftest import get_session
+from app.models.families import Family
 from app.tests.utils.generic import random_lower_string
-from app.services.families import FamiliesService
 
 
-def create_random_family(db: Session) -> Family:
-    name = random_lower_string()
+def create_random_family() -> Family:
+    with get_session() as db:
+        name = random_lower_string()
 
-    new_family = FamilyCreate(name=name)
+        family = Family(name=name)
 
-    service = FamiliesService(db)
+        db.add(family)
+        db.commit()
+        db.refresh(family)
 
-    family = service.create(new_family)
-
-    return family
+        return family

@@ -1,3 +1,4 @@
+import alembic_postgresql_enum  # noqa
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
@@ -19,6 +20,7 @@ if config.config_file_name is not None:
 
 from app.core.db.base.models import Base  # noqa
 from app.models import *  # noqa
+from app.core.security.models import *  # noqa
 from app.core.config import settings  # noqa
 
 target_metadata = Base.metadata

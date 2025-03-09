@@ -17,7 +17,19 @@ class Settings(BaseSettings):
     )
 
     API_V1_STR: str = "/api/v1"
+
     SECRET_KEY: str = secrets.token_urlsafe(32)
+    SESSION_EXPIRE_MINUTES: int = 60  # 1 hour
+    INACTIVE_SESSION_MINUTES: int = 5
+
+    COOKIE_HTTP_ONLY: bool = True
+    COOKIE_SECURE: bool = True
+    COOKIE_SAMESITE: str = "Lax"
+
+    FIRST_SUPERUSER_USERNAME: str
+    FIRST_SUPERUSER_NAME: str
+    FIRST_SUPERUSER_PASSWORD: str
+
     PROJECT_NAME: str
     ENVIROMENT: Literal["local", "staging", "production"] = "local"
 
