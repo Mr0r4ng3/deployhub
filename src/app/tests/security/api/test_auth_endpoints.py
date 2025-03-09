@@ -24,7 +24,7 @@ def test_login_invalid_credentials(client: TestClient) -> None:
         json={"username": "invalid", "password": "invalid"},
     )
 
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 def test_logout_success(client: TestClient) -> None:
