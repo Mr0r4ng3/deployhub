@@ -38,7 +38,7 @@ class AuthService:
         """
         user_service = UserService(self._db)
 
-        user = user_service.get_by_username(username)
+        user = user_service.get(username)
 
         if user and verify_password(password, user.hashed_password):
             return user

@@ -23,7 +23,7 @@ def get_current_session(
         raise NotAuthenticated()
 
     service = UserSessionService(db)
-    session = service.get_valid_session_by_id(id)
+    session = service.get_valid_session(id)
 
     if not session:
         raise NotAuthenticated()

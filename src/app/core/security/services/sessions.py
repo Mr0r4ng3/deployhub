@@ -1,5 +1,5 @@
 from uuid import UUID
-from user_agents import parse
+from user_agents import parse  # type: ignore
 from datetime import timedelta
 from sqlalchemy.orm import Session
 from app.core.security.types import SessionCloseReason
@@ -70,7 +70,7 @@ class UserSessionService:
             close_reason=new_session.close_reason,
         )
 
-    def get_by_id(self, id: UUID) -> UserSession | None:
+    def get(self, id: UUID) -> UserSession | None:
         """
         Retrieve a UserSession by its ID.
 
@@ -82,7 +82,7 @@ class UserSessionService:
         """
         return self._db.get(UserSession, id)
 
-    def get_valid_session_by_id(self, id: UUID) -> UserSession | None:
+    def get_valid_session(self, id: UUID) -> UserSession | None:
         """
         Retrieve a valid UserSession by its ID, invalidating it if expired or inactive.
 
@@ -92,7 +92,7 @@ class UserSessionService:
         Returns:
             UserSession | None: The valid session if found, otherwise None.
         """
-        session = self.get_by_id(id)
+        session = self.get(id)
 
         if not session or not session.is_active:
             return None

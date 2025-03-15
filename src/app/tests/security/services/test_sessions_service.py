@@ -11,7 +11,7 @@ from app.core.config import settings
 
 def test_user_session_service_get_by_id(db: Session, test_user, session_id) -> None:
     session_service = UserSessionService(db)
-    session = session_service.get_by_id(session_id)
+    session = session_service.get(session_id)
 
     assert session is not None
     assert session.id == session_id
@@ -20,7 +20,7 @@ def test_user_session_service_get_by_id(db: Session, test_user, session_id) -> N
 
 def test_user_session_service_get_by_id_non_existent(db: Session) -> None:
     session_service = UserSessionService(db)
-    session = session_service.get_by_id(UUID(int=1))
+    session = session_service.get(UUID(int=1))
 
     assert session is None
 
@@ -39,7 +39,7 @@ def test_user_session_service_create(db: Session, test_user) -> None:
 def test_user_session_service_update_last_used_at(db: Session, session_id) -> None:
     session_service = UserSessionService(db)
 
-    previus_session = session_service.get_by_id(session_id)
+    previus_session = session_service.get(session_id)
 
     assert previus_session is not None
 
@@ -47,7 +47,7 @@ def test_user_session_service_update_last_used_at(db: Session, session_id) -> No
 
     session_service.update_last_used_at(session_id)
 
-    session = session_service.get_by_id(session_id)
+    session = session_service.get(session_id)
 
     assert session is not None
     assert session.last_used_at is not None
@@ -58,7 +58,7 @@ def test_user_session_service_get_valid_session_by_id(
     db: Session, test_user, session_id
 ) -> None:
     session_service = UserSessionService(db)
-    session = session_service.get_valid_session_by_id(session_id)
+    session = session_service.get_valid_session(session_id)
 
     assert session is not None
     assert session.id == session_id
@@ -68,7 +68,7 @@ def test_user_session_service_get_valid_session_by_id(
 
 def test_user_session_service_get_valid_session_by_id_non_existent(db: Session) -> None:
     session_service = UserSessionService(db)
-    session = session_service.get_valid_session_by_id(UUID(int=1))
+    session = session_service.get_valid_session(UUID(int=1))
 
     assert session is None
 
@@ -79,7 +79,7 @@ def test_user_session_service_get_valid_session_by_id_inactive(
     session_service = UserSessionService(db)
     session_service.invalidate_session(session_id, SessionCloseReason.UserRequest)
 
-    session = session_service.get_valid_session_by_id(session_id)
+    session = session_service.get_valid_session(session_id)
 
     assert session is None
 
@@ -88,7 +88,7 @@ def test_user_session_service_get_valid_session_by_id_expired(
     db: Session, session_id
 ) -> None:
     session_service = UserSessionService(db)
-    session = session_service.get_by_id(session_id)
+    session = session_service.get(session_id)
 
     assert session is not None
 
@@ -96,7 +96,7 @@ def test_user_session_service_get_valid_session_by_id_expired(
     session_service._db.add(session)
     session_service._db.commit()
 
-    session = session_service.get_valid_session_by_id(session_id)
+    session = session_service.get_valid_session(session_id)
 
     assert session is None
 
@@ -105,7 +105,7 @@ def test_user_session_service_get_valid_session_by_id_user_inactive(
     db: Session, session_id
 ) -> None:
     session_service = UserSessionService(db)
-    session = session_service.get_by_id(session_id)
+    session = session_service.get(session_id)
 
     assert session is not None
 
@@ -116,6 +116,6 @@ def test_user_session_service_get_valid_session_by_id_user_inactive(
     session_service._db.add(session)
     session_service._db.commit()
 
-    session = session_service.get_valid_session_by_id(session_id)
+    session = session_service.get_valid_session(session_id)
 
     assert session is None

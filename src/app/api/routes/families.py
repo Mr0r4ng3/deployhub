@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import APIRouter
 from app.api.tags import Tags
 from app.core.security.depends import CurrentSessionDep
@@ -6,6 +5,8 @@ from app.services.families import FamiliesService
 from app.schemas.families import FamilyCreateSchema, FamilyPublicSchema
 from app.core.db.depends import DbDep
 from app.exceptions import ResourceNotFound
+from app.schemas.pagination import ListResource
+from app.depends.pagination import PaginationParamsQuery
 
 
 router = APIRouter(
@@ -19,21 +20,28 @@ FamilyNotFound = {
 }
 
 
-@router.get("/", response_model=List[FamilyPublicSchema])
-def list(db: DbDep, current_session: CurrentSessionDep, page: int = 1, limit: int = 10):
+@router.get(
+    "/", summary="List families.", response_model=ListResource[FamilyPublicSchema]
+)
+def list(
+    db: DbDep, current_session: CurrentSessionDep, pagination: PaginationParamsQuery
+) -> ListResource[FamilyPublicSchema]:
     """List families."""
 
     service = FamiliesService(db)
 
-    skip = (page - 1) * limit
+    results, count = service.list(pagination)
 
-    families = service.get_all(skip, limit)
-
-    return [FamilyPublicSchema(id=family.id, name=family.name) for family in families]
+    return ListResource.from_paginated_results(
+        [FamilyPublicSchema.model_validate(result) for result in results],
+        count,
+        pagination,
+    )
 
 
 @router.get(
     "/{family_id}",
+    summary="Get a family by ID.",
     response_model=FamilyPublicSchema,
     responses={404: FamilyNotFound},
 )
@@ -42,7 +50,7 @@ def get(db: DbDep, current_session: CurrentSessionDep, family_id: int):
 
     service = FamiliesService(db)
 
-    family = service.get_by_id(family_id)
+    family = service.get(family_id)
 
     if not family:
         raise ResourceNotFound()
@@ -52,9 +60,9 @@ def get(db: DbDep, current_session: CurrentSessionDep, family_id: int):
 
 @router.post(
     "/",
+    summary="Create a new family.",
     status_code=201,
     response_model=FamilyPublicSchema,
-    summary="Create a new family.",
     responses={201: {"description": "Family created."}},
 )
 def create(db: DbDep, current_session: CurrentSessionDep, family: FamilyCreateSchema):

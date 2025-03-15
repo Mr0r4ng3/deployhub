@@ -87,4 +87,4 @@ def test_read_families(logged_client: TestClient, db: Session):
 
     assert response.status_code == 200
     content = response.json()
-    assert len(content) >= 5
+    assert len(content["items"]) >= 5

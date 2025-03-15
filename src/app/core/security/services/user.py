@@ -53,7 +53,7 @@ class UserService:
             surname=new_user.surname,
         )
 
-    def get_by_username(self, username: str) -> User | None:
+    def get(self, username: str) -> User | None:
         """
         Retrieves a user by username
 

@@ -20,7 +20,7 @@ def test_login_invalid_credentials(logged_client: TestClient) -> None:
         json={"username": "invalid", "password": "invalid"},
     )
 
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 
 def test_logout_success(logged_client: TestClient) -> None:

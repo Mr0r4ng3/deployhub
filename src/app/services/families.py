@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.models.families import Family
 from app.schemas.families import FamilyCreateSchema
+from app.pagination import paginate
+from app.schemas.pagination import PaginationParams
 
 
 class FamiliesService:
@@ -25,7 +27,7 @@ class FamiliesService:
         """
         self._db = db
 
-    def get_all(self, skip: int = 0, limit: int = 100) -> Sequence[Family]:
+    def list(self, pagination: PaginationParams) -> tuple[Sequence[Family], int]:
         """
         Retrieve a list of families.
 
@@ -37,9 +39,14 @@ class FamiliesService:
             Sequence[Family]: A list of Family objects.
         """
         statement = (
-            select(Family).where(Family.deleted_at == None).offset(skip).limit(limit)  # noqa: E711
+            select(Family).where(Family.deleted_at == None)  # noqa: E711
         )
-        return self._db.scalars(statement).all()
+
+        return paginate(
+            session=self._db,
+            statement=statement,
+            pagination=pagination,
+        )
 
     def create(self, new_family: FamilyCreateSchema) -> Family:
         """
@@ -57,7 +64,7 @@ class FamiliesService:
         self._db.refresh(family)
         return family
 
-    def get_by_id(self, family_id: int) -> Family | None:
+    def get(self, family_id: int) -> Family | None:
         """
         Retrieve a family by its unique identifier.
 

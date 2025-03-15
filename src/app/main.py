@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
 
     user_service = UserService(db)
 
-    if not user_service.get_by_username(settings.FIRST_SUPERUSER_USERNAME):
+    if not user_service.get(settings.FIRST_SUPERUSER_USERNAME):
         user_service.create(
             UserCreateSchema(
                 username=settings.FIRST_SUPERUSER_USERNAME,

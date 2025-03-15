@@ -1,9 +1,8 @@
 import math
-from app.core.db.base.models import Model
 from typing import Generic, NamedTuple, Self, Sequence, TypeVar
 from app.schemas.base import Schema
 
-M = TypeVar("M", bound=Model)
+S = TypeVar("S", bound=Schema)
 
 
 class PaginationParams(NamedTuple):
@@ -16,13 +15,13 @@ class Pagination(Schema):
     max_page: int
 
 
-class ListResource(Schema, Generic[M]):
-    items: list[M]
+class ListResource(Schema, Generic[S]):
+    items: list[S]
     pagination: Pagination
 
     @classmethod
     def from_paginated_results(
-        cls, items: Sequence[M], total_count: int, pagination_params: PaginationParams
+        cls, items: Sequence[S], total_count: int, pagination_params: PaginationParams
     ) -> Self:
         return cls(
             items=list(items),
