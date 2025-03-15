@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Request, Response, status
+from fastapi import Request, Response, status
 from fastapi.routing import APIRouter
 from app.core.db.depends import DbDep
 from app.core.security.depends import CurrentSessionDep
@@ -8,24 +8,27 @@ from app.core.security.services.auth import AuthService
 from app.core.security.services.sessions import UserSessionService
 from app.core.config import settings
 from app.core.security.types import SessionCloseReason
+from app.exceptions import InvalidCredentials
+
 
 router = APIRouter(
     tags=["auth"],
 )
 
-InvalidCredentials = HTTPException(
-    status_code=status.HTTP_403_FORBIDDEN, detail="Invalid credentials"
+
+@router.post(
+    "/login",
+    response_model=UserPublicSchema,
+    status_code=status.HTTP_200_OK,
+    responses={401: {"description": "Invalid credentials"}},
 )
-
-
-@router.post("/login", response_model=UserPublicSchema, status_code=status.HTTP_200_OK)
 def login(request: Request, response: Response, db: DbDep, login_data: LoginSchema):
     auth_service = AuthService(db)
 
     user = auth_service.authenticate_user(login_data.username, login_data.password)
 
     if not user:
-        raise InvalidCredentials
+        raise InvalidCredentials()
 
     session_service = UserSessionService(db)
 

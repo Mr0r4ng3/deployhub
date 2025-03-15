@@ -7,6 +7,7 @@ from app.core.db.database import get_db
 from app.core.security.schemas.users import UserCreateSchema
 from app.core.security.routes import security_router
 from app.core.security.services.user import UserService
+from app.exception_handlers import add_exception_handlers
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -38,8 +39,11 @@ app = FastAPI(
     generate_unique_id_function=custom_generate_unique_id,
 )
 
+
 app.include_router(api_router, prefix=settings.API_V1_STR)
 app.include_router(security_router)
+
+add_exception_handlers(app)
 
 
 if __name__ == "__main__":
