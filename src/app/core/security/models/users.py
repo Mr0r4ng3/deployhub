@@ -1,20 +1,16 @@
-from sqlmodel import Field, Relationship
-from app.core.db.base.models import RecordModel, Base
+from typing import List
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from app.core.db.base.models import RecordModel
 
 
-class UserBase(Base):
-    name: str = Field(max_length=100)
-    surname: str | None = Field(default=None, max_length=100, nullable=True)
-    username: str = Field(index=True, max_length=100, unique=True)
+class User(RecordModel):
+    __tablename__ = "users"
 
-
-class User(UserBase, RecordModel, table=True):
-    hashed_password: str = Field()
-    sessions: list["UserSession"] = Relationship(back_populates="user")  # type: ignore # noqa
-
-
-class UserCreate(UserBase):
-    password: str
-
-
-class UserPublic(UserBase, RecordModel): ...
+    name: Mapped[str] = mapped_column(String(100))
+    surname: Mapped[str | None] = mapped_column(
+        String(100), default=None, nullable=True
+    )
+    username: Mapped[str] = mapped_column(String(100), index=True, unique=True)
+    hashed_password: Mapped[str]
+    sessions: Mapped[List["UserSession"]] = relationship(back_populates="user")  # type: ignore # noqa

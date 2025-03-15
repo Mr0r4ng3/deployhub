@@ -1,11 +1,10 @@
+import pytest
+from uuid import UUID
 from fastapi.testclient import TestClient
-from app.tests.utils.users import create_test_user
-from app.tests.utils.sessions import create_session
 
 
-def login(client: TestClient) -> None:
-    user = create_test_user()
-
-    session_id = create_session(user_id=user.id)
-
+@pytest.fixture(scope="function")
+def logged_client(client: TestClient, session_id: UUID) -> TestClient:
     client.cookies["session_id"] = str(session_id)
+
+    return client

@@ -18,12 +18,12 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 
-from app.core.db.base.models import Base  # noqa
+from app.core.db.base.models import Model  # noqa
 from app.models import *  # noqa
 from app.core.security.models import *  # noqa
 from app.core.config import settings  # noqa
 
-target_metadata = Base.metadata
+target_metadata = Model.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

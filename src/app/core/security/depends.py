@@ -2,9 +2,8 @@ from uuid import UUID
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyCookie
-from app.core.db.dependencies import DbDep
+from app.core.db.depends import DbDep
 from app.core.security.models.sessions import UserSession
-from app.core.security.models.users import User
 from app.core.security.services.sessions import UserSessionService
 
 NotAuthenticated = HTTPException(

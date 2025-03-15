@@ -1,30 +1,38 @@
 from app.core.security.types import SessionCloseReason
 from datetime import datetime, timedelta
-from sqlmodel import Field, Relationship, Column, Enum, DateTime
+from sqlalchemy.orm import Mapped, relationship, mapped_column
+from sqlalchemy import TIMESTAMP, ForeignKey, String
 from app.core.db.base.mixins import (
     CreatedAtMixin,
     UUIDPrimaryKeyMixin,
 )
-from app.core.db.base.models import Base
-from app.core.security.models.users import User
+from app.core.db.base.models import Model
 from app.core.timezone import utc_now
 from app.core.config import settings
 
 
-class UserSessionBase(Base, CreatedAtMixin, UUIDPrimaryKeyMixin):
-    user_id: int = Field(foreign_key="user.id")
-    device_info: str
-    location: str | None
+class UserSession(Model, CreatedAtMixin, UUIDPrimaryKeyMixin):
+    __tablename__ = "user_sessions"
 
-    expires_at: datetime = Field(sa_type=DateTime(timezone=True), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    device_info: Mapped[str]
+    location: Mapped[str | None]
 
-    last_used_at: datetime = Field(sa_type=DateTime(timezone=True), nullable=False)
-
-    is_active: bool = Field(default=True, nullable=False)
-
-    close_reason: SessionCloseReason | None = Field(
-        sa_column=Column(Enum(SessionCloseReason), nullable=True, default=None)
+    expires_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=False
     )
+
+    last_used_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=False
+    )
+
+    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
+
+    close_reason: Mapped[SessionCloseReason | None] = mapped_column(
+        nullable=True, default=None
+    )
+
+    user: Mapped["User"] = relationship(back_populates="sessions")  # type: ignore # noqa: F821
 
     @property
     def is_expired(self) -> bool:
@@ -35,10 +43,3 @@ class UserSessionBase(Base, CreatedAtMixin, UUIDPrimaryKeyMixin):
         return self.last_used_at < utc_now() - timedelta(
             minutes=settings.INACTIVE_SESSION_MINUTES
         )
-
-
-class UserSession(UserSessionBase, table=True):
-    user: User = Relationship(back_populates="sessions")
-
-
-class UserSessionPublic(UserSessionBase): ...

@@ -24,14 +24,15 @@ class Settings(BaseSettings):
 
     COOKIE_HTTP_ONLY: bool = True
     COOKIE_SECURE: bool = True
-    COOKIE_SAMESITE: str = "Lax"
+    COOKIE_SAMESITE: Literal["lax", "strict", "none"] = "lax"
+
+    API_PAGINATION_MAX_LIMIT: int = 500
 
     FIRST_SUPERUSER_USERNAME: str
     FIRST_SUPERUSER_NAME: str
     FIRST_SUPERUSER_PASSWORD: str
 
     PROJECT_NAME: str
-    ENVIROMENT: Literal["local", "staging", "production"] = "local"
 
     POSTGRES_SERVER: str
     POSTGRES_PORT: int

@@ -2,27 +2,42 @@ from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, create_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
-from app.core.db.base.models import SQLModel
+from app.core.db.base.models import Model
 from app.models import *  # noqa
+from app.core.security.models import *  # noqa
 from app.core.db.database import get_db
 from app.core.config import settings
 from app.main import app
-
-engine = create_engine(settings.TEST_DATABASE_URI)
-
-
-def get_session() -> Session:
-    return Session(engine)
+from app.tests.utils import *  # noqa: F403
 
 
-@pytest.fixture(scope="session", autouse=True)
-def db() -> Generator[Session, None, None]:
-    SQLModel.metadata.create_all(engine)  # noqa
+@pytest.fixture(scope="session")
+def db_engine(request):
+    engine = create_engine(settings.TEST_DATABASE_URI)
 
-    with get_session() as session:
-        yield session
+    Model.metadata.create_all(engine)
+
+    yield engine
+
+    engine.dispose()
+
+
+@pytest.fixture(scope="session")
+def db_session_factory(db_engine):
+    return scoped_session(sessionmaker(bind=db_engine))
+
+
+@pytest.fixture(scope="function")
+def db(db_session_factory):
+    session = db_session_factory()
+
+    yield session
+
+    session.rollback()
+    session.close()
 
 
 @pytest.fixture(scope="function")

@@ -1,6 +1,7 @@
-from sqlmodel import Session, select
-
-from app.core.security.models.users import User, UserCreate, UserPublic
+from sqlalchemy.orm import Session
+from sqlalchemy import select
+from app.core.security.models.users import User
+from app.core.security.schemas.users import UserPublicSchema, UserCreateSchema
 from app.core.security.func import get_hash_password
 
 
@@ -24,7 +25,7 @@ class UserService:
         """
         self._db = db
 
-    def create(self, user: UserCreate) -> UserPublic:
+    def create(self, user: UserCreateSchema) -> UserPublicSchema:
         """
         Creates a new user and returns it
 
@@ -45,7 +46,12 @@ class UserService:
         self._db.add(new_user)
         self._db.commit()
         self._db.refresh(new_user)
-        return UserPublic.model_validate(new_user)
+        return UserPublicSchema(
+            id=new_user.id,
+            username=new_user.username,
+            name=new_user.name,
+            surname=new_user.surname,
+        )
 
     def get_by_username(self, username: str) -> User | None:
         """
@@ -58,4 +64,4 @@ class UserService:
             User | None: The user if found, or None otherwise
         """
         statement = select(User).where(User.username == username)
-        return self._db.exec(statement).first()
+        return self._db.scalars(statement).first()

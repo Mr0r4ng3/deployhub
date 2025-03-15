@@ -1,9 +1,9 @@
 from fastapi import HTTPException, Request, Response, status
 from fastapi.routing import APIRouter
-from app.core.db.dependencies import DbDep
-from app.core.security.dependencies import CurrentSessionDep
-from app.core.security.models.auth import LoginData
-from app.core.security.models.users import UserPublic
+from app.core.db.depends import DbDep
+from app.core.security.depends import CurrentSessionDep
+from app.core.security.schemas.auth import LoginSchema
+from app.core.security.schemas.users import UserPublicSchema
 from app.core.security.services.auth import AuthService
 from app.core.security.services.sessions import UserSessionService
 from app.core.config import settings
@@ -18,8 +18,8 @@ InvalidCredentials = HTTPException(
 )
 
 
-@router.post("/login", response_model=UserPublic, status_code=status.HTTP_200_OK)
-def login(request: Request, response: Response, db: DbDep, login_data: LoginData):
+@router.post("/login", response_model=UserPublicSchema, status_code=status.HTTP_200_OK)
+def login(request: Request, response: Response, db: DbDep, login_data: LoginSchema):
     auth_service = AuthService(db)
 
     user = auth_service.authenticate_user(login_data.username, login_data.password)
@@ -30,7 +30,7 @@ def login(request: Request, response: Response, db: DbDep, login_data: LoginData
     session_service = UserSessionService(db)
 
     user_agent = request.headers.get("User-Agent")
-    ip_address = request.client.host
+    ip_address = request.client.host if request.client else None
 
     session = session_service.create(user.id, user_agent, ip_address)
 
@@ -43,7 +43,12 @@ def login(request: Request, response: Response, db: DbDep, login_data: LoginData
         max_age=settings.SESSION_EXPIRE_MINUTES * 60,  # in seconds
     )
 
-    return UserPublic.model_validate(user)
+    return UserPublicSchema(
+        id=user.id,
+        username=user.username,
+        name=user.name,
+        surname=user.surname,
+    )
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK)

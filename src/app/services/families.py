@@ -1,6 +1,8 @@
 from typing import Sequence
-from sqlmodel import Session, select
-from app.models.families import FamilyCreate, Family
+from sqlalchemy.orm import Session
+from sqlalchemy import select
+from app.models.families import Family
+from app.schemas.families import FamilyCreateSchema
 
 
 class FamiliesService:
@@ -37,9 +39,9 @@ class FamiliesService:
         statement = (
             select(Family).where(Family.deleted_at == None).offset(skip).limit(limit)  # noqa: E711
         )
-        return self._db.exec(statement).all()
+        return self._db.scalars(statement).all()
 
-    def create(self, new_family: FamilyCreate) -> Family:
+    def create(self, new_family: FamilyCreateSchema) -> Family:
         """
         Create a new family in the database.
 
@@ -49,13 +51,13 @@ class FamiliesService:
         Returns:
             Family: The newly created Family object.
         """
-        family = Family.model_validate(new_family)
+        family = Family(name=new_family.name)
         self._db.add(family)
         self._db.commit()
         self._db.refresh(family)
         return family
 
-    def get_by_id(self, family_id: int) -> Family:
+    def get_by_id(self, family_id: int) -> Family | None:
         """
         Retrieve a family by its unique identifier.
 
@@ -70,4 +72,4 @@ class FamiliesService:
             .where(Family.id == family_id)
             .where(Family.deleted_at == None)  # noqa: E711
         )
-        return self._db.exec(statement).first()
+        return self._db.scalars(statement).first()

@@ -1,16 +1,9 @@
-from sqlmodel import Field
-from app.core.db.base.models import RecordModel, Base
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column
+from app.core.db.base.models import RecordModel
 
 
-class FamilyBase(Base):
-    name: str = Field(index=True, max_length=100, unique=True)
+class Family(RecordModel):
+    __tablename__ = "families"
 
-
-class FamilyCreate(FamilyBase):
-    pass
-
-
-class Family(FamilyBase, RecordModel, table=True): ...
-
-
-class FamilyPublic(Family, table=False): ...
+    name: Mapped[str] = mapped_column(String(100), index=True, unique=True)

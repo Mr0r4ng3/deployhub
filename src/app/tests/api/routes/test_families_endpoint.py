@@ -1,12 +1,13 @@
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlmodel import Session, select
+from sqlalchemy.orm import Session
+from sqlalchemy import select
 from sqlalchemy.sql.functions import func
-from app.models.families import FamilyCreate, FamilyPublic, Family
+from app.models.families import Family
+from app.schemas.families import FamilyCreateSchema, FamilyPublicSchema
 from app.core.config import settings
 from app.tests.utils.families import create_random_family
 from app.tests.utils.generic import random_lower_string
-from app.tests.utils.auth import login
 
 BASE_URL = f"{settings.API_V1_STR}/families/"
 
@@ -14,75 +15,58 @@ BASE_URL = f"{settings.API_V1_STR}/families/"
 def test_create_family_unauthorized(
     client: TestClient,
 ):
-    new_family = FamilyCreate(name=random_lower_string(10))
+    new_family = FamilyCreateSchema(name=random_lower_string(10))
 
     response = client.post(BASE_URL, json=new_family.model_dump())
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_create_family(client: TestClient):
-    login(client)
+def test_create_family(logged_client: TestClient):
+    new_family = FamilyCreateSchema(name=random_lower_string(10))
 
-    new_family = FamilyCreate(name=random_lower_string(10))
-
-    response = client.post(BASE_URL, json=new_family.model_dump())
+    response = logged_client.post(BASE_URL, json=new_family.model_dump())
 
     assert response.status_code == status.HTTP_201_CREATED
     content = response.json()
     assert content["name"] == new_family.name
 
 
-def test_create_family_name_too_long(client: TestClient):
-    login(client)
-
-    response = client.post(BASE_URL, json={"name": random_lower_string(101)})
+def test_create_family_name_too_long(logged_client: TestClient):
+    response = logged_client.post(BASE_URL, json={"name": random_lower_string(101)})
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 def test_create_family_name_missing(
-    client: TestClient,
+    logged_client: TestClient,
 ):
-    login(client)
-
-    response = client.post(BASE_URL, json={})
+    response = logged_client.post(BASE_URL, json={})
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-def test_read_family_by_id_unauthorized(
-    client: TestClient,
-):
-    family = create_random_family()
-
-    response = client.get(f"{BASE_URL}{family.id}")
+def test_read_family_by_id_unauthorized(client: TestClient, random_family):
+    response = client.get(f"{BASE_URL}{random_family.id}")
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_read_family_by_id(
-    client: TestClient,
-):
-    login(client)
+def test_read_family_by_id(logged_client: TestClient, random_family):
+    expected_family = FamilyPublicSchema.model_validate(random_family)
 
-    family = create_random_family()
-    expected_family = FamilyPublic.model_validate(family)
-
-    response = client.get(f"{BASE_URL}{family.id}")
+    response = logged_client.get(f"{BASE_URL}{random_family.id}")
 
     assert response.status_code == status.HTTP_200_OK
-    content = FamilyPublic.model_validate(response.json())
+    content = FamilyPublicSchema.model_validate(response.json())
 
     assert content == expected_family
 
 
-def test_read_family_by_id_not_found(client: TestClient, db: Session):
-    login(client)
+def test_read_family_by_id_not_found(logged_client: TestClient, db: Session):
+    id = db.scalars(select(func.max(Family.id))).first() or 0
 
-    id = db.exec(select(func.max(Family.id))).first()
-
-    response = client.get(f"{BASE_URL}{id + 1}")
+    response = logged_client.get(f"{BASE_URL}{id + 1}")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -95,15 +79,11 @@ def test_read_families_unauthorized(
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_read_families(
-    client: TestClient,
-):
-    login(client)
-
+def test_read_families(logged_client: TestClient, db: Session):
     for _ in range(5):
-        create_random_family()
+        create_random_family(db)
 
-    response = client.get(BASE_URL)
+    response = logged_client.get(BASE_URL)
 
     assert response.status_code == 200
     content = response.json()

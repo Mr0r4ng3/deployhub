@@ -1,4 +1,4 @@
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 from app.core.security.models.users import User
 from app.core.security.func import verify_password
 from app.core.security.services.user import UserService

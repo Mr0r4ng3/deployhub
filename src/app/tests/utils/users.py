@@ -1,25 +1,25 @@
-from sqlmodel import select
+import pytest
+from sqlalchemy import select
 from app.core.security.func import get_hash_password
-from app.tests.conftest import get_session
 from app.core.security.models.users import User
 
 
-def create_test_user(username: str = "testuser", password: str = "testpass") -> User:
-    with get_session() as db:
-        statement = select(User).where(User.username == username)
+@pytest.fixture(scope="function")
+def test_user(db, username: str = "testuser", password: str = "testpass") -> User:
+    statement = select(User).where(User.username == username)
 
-        user = db.exec(statement).first()
+    user = db.scalars(statement).first()
 
-        if not user:
-            user = User(
-                username=username,
-                name="Test",
-                surname="User",
-                hashed_password=get_hash_password(password),
-            )
+    if not user:
+        user = User(
+            username=username,
+            name="Test",
+            surname="User",
+            hashed_password=get_hash_password(password),
+        )
 
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
-        return user
+    return user

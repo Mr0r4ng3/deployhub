@@ -1,25 +1,21 @@
 from fastapi.testclient import TestClient
 
-from app.tests.utils.auth import login
-from app.tests.utils.users import create_test_user
 
-
-def test_login_success(client: TestClient) -> None:
+def test_login_success(logged_client: TestClient, test_user) -> None:
     password = "testpass"
-    user = create_test_user(password=password)
 
-    response = client.post(
+    response = logged_client.post(
         "/login",
-        json={"username": user.username, "password": password},
+        json={"username": test_user.username, "password": password},
     )
 
     assert response.status_code == 200
-    assert response.json()["username"] == user.username
+    assert response.json()["username"] == test_user.username
     assert "session_id" in response.cookies
 
 
-def test_login_invalid_credentials(client: TestClient) -> None:
-    response = client.post(
+def test_login_invalid_credentials(logged_client: TestClient) -> None:
+    response = logged_client.post(
         "/login",
         json={"username": "invalid", "password": "invalid"},
     )
@@ -27,10 +23,8 @@ def test_login_invalid_credentials(client: TestClient) -> None:
     assert response.status_code == 403
 
 
-def test_logout_success(client: TestClient) -> None:
-    login(client)
-
-    response = client.post("/logout")
+def test_logout_success(logged_client: TestClient) -> None:
+    response = logged_client.post("/logout")
 
     assert response.status_code == 200
     assert response.cookies.get("session_id") is None

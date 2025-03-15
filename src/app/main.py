@@ -4,7 +4,7 @@ from fastapi.routing import APIRoute
 from app.core.config import settings
 from app.api.main import api_router
 from app.core.db.database import get_db
-from app.core.security.models.users import UserCreate
+from app.core.security.schemas.users import UserCreateSchema
 from app.core.security.routes import security_router
 from app.core.security.services.user import UserService
 
@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
 
     if not user_service.get_by_username(settings.FIRST_SUPERUSER_USERNAME):
         user_service.create(
-            UserCreate(
+            UserCreateSchema(
                 username=settings.FIRST_SUPERUSER_USERNAME,
                 name=settings.FIRST_SUPERUSER_NAME,
                 password=settings.FIRST_SUPERUSER_PASSWORD,

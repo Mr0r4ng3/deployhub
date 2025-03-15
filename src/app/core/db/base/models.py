@@ -1,8 +1,10 @@
-from sqlmodel import SQLModel
+from sqlalchemy.orm import DeclarativeBase
 from .mixins import IntegerPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin
 
 
-class Base(SQLModel): ...
+class Model(DeclarativeBase):
+    __abstract__ = True
 
 
-class RecordModel(Base, IntegerPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin): ...
+class RecordModel(Model, IntegerPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
+    __abstract__ = True

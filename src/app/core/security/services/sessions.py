@@ -1,9 +1,10 @@
 from uuid import UUID
 from user_agents import parse
 from datetime import timedelta
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 from app.core.security.types import SessionCloseReason
-from app.core.security.models.sessions import UserSessionPublic, UserSession
+from app.core.security.models.sessions import UserSession
+from app.core.security.schemas.sessions import UserSessionPublicSchema
 from app.core.config import settings
 from app.core.timezone import utc_now
 
@@ -29,8 +30,8 @@ class UserSessionService:
         self._db = db
 
     def create(
-        self, user_id: int, user_agent: str, ip_address: str | None = None
-    ) -> UserSessionPublic:
+        self, user_id: int, user_agent: str | None, ip_address: str | None = None
+    ) -> UserSessionPublicSchema:
         """
         Create a new UserSession.
 
@@ -42,7 +43,7 @@ class UserSessionService:
         Returns:
             UserSessionPublic: The newly created user session.
         """
-        device_info = self._parse_device(user_agent)
+        device_info = self._parse_device(user_agent) if user_agent else "Unknown"
         location = self._get_location(ip_address) if ip_address else "Unknown"
         expires_at = utc_now() + timedelta(minutes=settings.SESSION_EXPIRE_MINUTES)
 
@@ -58,7 +59,16 @@ class UserSessionService:
         self._db.commit()
         self._db.refresh(new_session)
 
-        return UserSessionPublic.model_validate(new_session)
+        return UserSessionPublicSchema(
+            id=new_session.id,
+            user_id=new_session.user_id,
+            device_info=new_session.device_info,
+            location=new_session.location,
+            expires_at=new_session.expires_at,
+            last_used_at=new_session.last_used_at,
+            is_active=new_session.is_active,
+            close_reason=new_session.close_reason,
+        )
 
     def get_by_id(self, id: UUID) -> UserSession | None:
         """
