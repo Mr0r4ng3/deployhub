@@ -1,17 +1,18 @@
 import pytest
+from app.core.security.models.users import User
 from app.models.families import Family
 from app.tests.utils.generic import random_lower_string
 
 
 @pytest.fixture(scope="function")
-def random_family(db) -> Family:
-    return create_random_family(db)
+def random_family(db, test_user: User) -> Family:
+    return create_random_family(db, test_user)
 
 
-def create_random_family(db) -> Family:
+def create_random_family(db, test_user: User) -> Family:
     name = random_lower_string()
 
-    family = Family(name=name)
+    family = Family(name=name, created_by_user_id=test_user.id)
 
     db.add(family)
     db.commit()

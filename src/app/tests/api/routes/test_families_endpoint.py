@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from sqlalchemy.sql.functions import func
+from app.core.security.models.users import User
 from app.models.families import Family
 from app.schemas.families import FamilyCreateSchema, FamilyPublicSchema
 from app.core.config import settings
@@ -79,12 +80,15 @@ def test_read_families_unauthorized(
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_read_families(logged_client: TestClient, db: Session):
+def test_read_families(logged_client: TestClient, db: Session, test_user: User):
     for _ in range(5):
-        create_random_family(db)
+        create_random_family(db, test_user)
 
     response = logged_client.get(BASE_URL)
 
     assert response.status_code == 200
     content = response.json()
     assert len(content["items"]) >= 5
+    assert content["pagination"]
+    assert content["pagination"]["total_count"]
+    assert content["pagination"]["max_page"]

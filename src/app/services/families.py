@@ -1,6 +1,7 @@
 from typing import Sequence
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from app.core.security.models.users import User
 from app.models.families import Family
 from app.schemas.families import FamilyCreateSchema
 from app.pagination import paginate
@@ -48,7 +49,7 @@ class FamiliesService:
             pagination=pagination,
         )
 
-    def create(self, new_family: FamilyCreateSchema) -> Family:
+    def create(self, family_create: FamilyCreateSchema, user: User) -> Family:
         """
         Create a new family in the database.
 
@@ -58,7 +59,7 @@ class FamiliesService:
         Returns:
             Family: The newly created Family object.
         """
-        family = Family(name=new_family.name)
+        family = Family(created_by_user_id=user.id, **family_create.model_dump())
         self._db.add(family)
         self._db.commit()
         self._db.refresh(family)

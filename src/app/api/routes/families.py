@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from app.api.tags import Tags
 from app.core.security.depends import CurrentSessionDep
 from app.services.families import FamiliesService
-from app.schemas.families import FamilyCreateSchema, FamilyPublicSchema
+from app.schemas.families import FamilyCreateSchema, FamilyPublicSchema, FamilyDBSchema
 from app.core.db.depends import DbDep
 from app.exceptions import ResourceNotFound
 from app.schemas.pagination import ListResource
@@ -21,7 +21,9 @@ FamilyNotFound = {
 
 
 @router.get(
-    "/", summary="List families.", response_model=ListResource[FamilyPublicSchema]
+    "/",
+    summary="List families.",
+    response_model=ListResource[FamilyPublicSchema],
 )
 def list(
     db: DbDep, current_session: CurrentSessionDep, pagination: PaginationParamsQuery
@@ -45,7 +47,9 @@ def list(
     response_model=FamilyPublicSchema,
     responses={404: FamilyNotFound},
 )
-def get(db: DbDep, current_session: CurrentSessionDep, family_id: int):
+def get(
+    db: DbDep, current_session: CurrentSessionDep, family_id: int
+) -> FamilyPublicSchema:
     """Get a family by ID."""
 
     service = FamiliesService(db)
@@ -55,21 +59,23 @@ def get(db: DbDep, current_session: CurrentSessionDep, family_id: int):
     if not family:
         raise ResourceNotFound()
 
-    return FamilyPublicSchema(id=family.id, name=family.name)
+    return FamilyPublicSchema.model_validate(family)
 
 
 @router.post(
     "/",
     summary="Create a new family.",
     status_code=201,
-    response_model=FamilyPublicSchema,
+    response_model=FamilyDBSchema,
     responses={201: {"description": "Family created."}},
 )
-def create(db: DbDep, current_session: CurrentSessionDep, family: FamilyCreateSchema):
+def create(
+    db: DbDep, current_session: CurrentSessionDep, family: FamilyCreateSchema
+) -> FamilyDBSchema:
     """Create a new family."""
 
     service = FamiliesService(db)
 
-    created_family = service.create(family)
+    created_family = service.create(family, current_session.user)
 
-    return FamilyPublicSchema(id=created_family.id, name=created_family.name)
+    return FamilyDBSchema.model_validate(created_family)
